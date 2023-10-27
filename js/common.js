@@ -115,7 +115,7 @@ let common = {
 
     search_do: (act) => {
         // vars
-        let data = { search: gv('search') };
+        let data = { search: gv('search'), act: act };
         let location = { dpt: 'search', act: act };
         // call
         request({location: location, data: data}, (result) => {
@@ -134,6 +134,7 @@ let common = {
         let data = {plot_id: plot_id};
         let location = {dpt: 'plot', act: 'edit_window'};
         // call
+        console.log(data, location)
         request({location: location, data: data}, (result) => {
             common.modal_show(400, result.html);
         });
@@ -157,6 +158,92 @@ let common = {
             html('table', result.html);
         });
     },
+
+    // users
+    user_edit_window: (user_id, e) => {
+        // actions
+        cancel_event(e);
+        common.menu_popup_hide_all('all');
+        // vars
+        let data = {user_id: user_id};
+        let location = {dpt: 'user', act: 'edit_window'};
+        // call
+        request({location: location, data: data}, (result) => {
+            common.modal_show(400, result.html);
+        });
+    },
+
+     user_edit_update: (user_id = 0) => {
+        // vars
+        let data = {
+            user_id: user_id,
+            first_name: gv('first_name'),
+            last_name: gv('last_name'),
+            phone: gv('phone'),
+            email: gv('email'),
+            last_login: gv('last_login'),
+            plot_id: gv('plot_id'),
+            offset: global.offset
+        };
+        if(common.isDataValid(data)){
+            let location = {dpt: 'user', act: 'edit_update'};
+            // call
+            request({location: location, data: data}, (result) => {
+                common.modal_hide();
+                html('table', result.html);
+            });
+        }
+         let alert = document.getElementById('err')
+         alert.innerHTML = "<p>All non-optional fields must be filled</p>"
+
+    },
+
+
+    isDataValid:(data) => {
+        let excludedFields = ['user_id', 'offset', 'plot_id']; // Specify the fields to exclude
+        let keys = Object.keys(data);
+        let errs = []
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            if (!excludedFields.includes(key) && !data[key]) {
+                // Perform the event you want to trigger for empty fields here
+                errs.push(key)
+                // You can implement any specific event you want for the empty field here
+            }
+        }
+        return errs.length < 1;
+
+    },
+
+    user_delete_window: (user_id, e) =>{
+        cancel_event(e)
+        common.menu_popup_hide_all('all');
+
+        let data = {user_id: user_id};
+        let location = {dpt: 'user', act: 'delete_window'};
+        request({location: location, data: data}, (result) => {
+            common.modal_show(400, result.html);
+        });
+    },
+
+    user_delete:(user_id, e) => {
+        cancel_event(e)
+        let data = {
+            user_id: user_id,
+            offset: global.offset
+        };
+        let location = {dpt: 'user', act: 'user_delete'};
+        // call
+        request({location: location, data: data}, (result) => {
+            common.modal_hide();
+            html('table', result.html);
+        });
+    },
+
+    selectSearch:(e) =>{
+        searchInput = document.getElementById("search");
+        searchInput.setAttribute("oninput", `common.search_do('${e.target.value}');`);
+    }
 }
 
 add_event(document, 'DOMContentLoaded', common.init);
